@@ -1,3 +1,4 @@
+import { User } from '../models/user';
 import { loadUsersByPage } from '../use-cases/load-users-by-page';
 
 const state = {
@@ -6,7 +7,11 @@ const state = {
 };
 
 const loadNextPage = async () => {
-  await loadUsersByPage(state.currentPage + 1)
+  const users = await loadUsersByPage(state.currentPage + 1);
+  if (users.length === 0) return;
+
+  state.currentPage += 1;
+  state.users = users;
 };
 
 const loadPreviousPage = async () => {
@@ -28,6 +33,13 @@ export default {
   onUserChanged,
   reloadPage,
 
+  /**
+   * @return {User[]}
+   */
   getUsers: () => [...state.users], // Los objetos pasan por referencia por eso se crea una nueva referencia con el spread operator "...".
+
+  /**
+   * @return {Number}
+   */
   getCurrentPage: () => state.currentPage, // Los primitivos pasan por valor, no hace falta usar el spread operator.
 };
