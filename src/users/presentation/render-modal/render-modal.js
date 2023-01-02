@@ -1,16 +1,39 @@
 import modalHtml from './render-modal.html?raw';
 import './render-modal.css';
+import { User } from '../../models/user';
+import { getUserByID } from '../../use-cases/get-user-by-id';
 
 let modal, form;
+let loadedUser = {};
 
-// TODO: cargar usuario por id
-export const showModal = () => {
+/**
+ * @param {String|Number} id
+ */
+export const showModal = async id => {
   modal?.classList.remove('hide-modal');
+  loadedUser = {};
+
+  if (!id) return;
+  const user = await getUserByID(id);
+
+  setFormValues(user);
 };
 
 export const hideModal = () => {
   modal?.classList.add('hide-modal');
   form?.reset(); // reset() es un metodo nativo para resetear los formularios
+};
+
+/**
+ * @param {User} user
+ */
+const setFormValues = user => {
+  form.querySelector('[name="firstName"]').value = user.firstName;
+  form.querySelector('[name="lastName"]').value = user.lastName;
+  form.querySelector('[name="balance"]').value = user.balance;
+  form.querySelector('[name="isActive"]').checked = user.isActive;
+
+  loadedUser = user;
 };
 
 /**
@@ -36,7 +59,7 @@ export const renderModal = (element, callback) => {
   form.addEventListener('submit', async e => {
     e.preventDefault();
     const formData = new FormData(form);
-    const userLike = {};
+    const userLike = { ...loadedUser };
 
     for (const [key, value] of formData) {
       if (key === 'balance') {
@@ -45,7 +68,7 @@ export const renderModal = (element, callback) => {
       }
 
       if (key === 'isActive') {
-        userLike[key] = (value === 'on') ? true : false;
+        userLike[key] = value === 'on' ? true : false;
         continue;
       }
 
